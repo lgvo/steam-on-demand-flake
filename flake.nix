@@ -5,6 +5,14 @@
       url = "github:lgvo/nix-dev-templates";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix-gaming = {
+      url = "github:fufexan/nix-gaming";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    chaotic-nyx = {
+      url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
@@ -12,8 +20,10 @@
     dev-templates,
     ...
   }: let
-    system = "aarch64-darwin"; # or "x86_64-darwin", "aarch64-darwin"
+    system = "aarch64-darwin";
   in {
+    nixosModules.default = import ./modules;
+
     devShells.${system}.default = dev-templates.lib.${system}.mkDevShell {
       assistant.opencode.enable = true;
 

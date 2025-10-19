@@ -22,7 +22,7 @@ check:
 
 # Verify module syntax
 verify-modules:
-  nix eval '.#lib' > /dev/null && echo "✓ Modules valid"
+  nix eval '.#nixosModules.default' > /dev/null && echo "✓ Modules valid"
 
 # Validate the project without updating dependencies
 validate: lint check verify-modules
