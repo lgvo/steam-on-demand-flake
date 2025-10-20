@@ -22,12 +22,14 @@ in {
       description = "Steam on-demand gaming service";
       wantedBy = [];
       conflicts = ["getty@tty1.service"];
-      after = ["systemd-user-sessions.service" "sound.target"];
+      after = ["systemd-user-sessions.service" "sound.target" "network-online.target"];
+      wants = ["network-online.target"];
 
       serviceConfig = {
         Type = "simple";
         User = cfg.user;
         Group = "users";
+        ExecStartPre = "${pkgs.bash}/bin/bash -c 'set -euo pipefail; echo \"Starting Steam on-demand pre-start checks\"; if ! id \"${cfg.user}\" >/dev/null 2>&1; then echo \"Error: User ${cfg.user} does not exist\"; exit 1; fi'";
         ExecStart =
           if cfg.gamescope.enable
           then "${pkgs.gamescope}/bin/gamescope ${concatStringsSep " " cfg.gamescope.args} -- ${steamFHS}/bin/steam -bigpicture"
@@ -51,8 +53,13 @@ in {
       };
 
       preStart = ''
+        # Ensure Steam directory exists
         mkdir -p ${steamDir}/compatibilitytools.d
-        chown -R ${cfg.user}:users ${homeDir}
+        
+        # Fix ownership only if directory exists and user exists
+        if [ -d "${homeDir}" ] && id "${cfg.user}" >/dev/null 2>&1; then
+          chown -R ${cfg.user}:users ${homeDir}
+        fi
       '';
     };
 
