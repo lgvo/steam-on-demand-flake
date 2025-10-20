@@ -205,8 +205,8 @@ optimize.gpu = {
 #### System
 
 ```nix
-optimize.gameMode = true;            # Default: true
-# Effect: Auto CPU governor switching, process priority boost
+optimize.cpuGovernor = true;         # Default: true
+# Effect: Auto CPU governor switching (performance on start, powersave on stop)
 ```
 
 #### Bleeding-Edge Features
