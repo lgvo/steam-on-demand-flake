@@ -19,22 +19,22 @@
     nixpkgs,
     dev-templates,
     ...
-  }: let
-    system = "aarch64-darwin";
-  in {
+  }: {
     nixosModules.default = import ./modules;
 
-    devShells.${system}.default = dev-templates.lib.${system}.mkDevShell {
-      assistant.opencode.enable = true;
+    devShells = dev-templates.lib.mkDevShells {
+      config = {
+        assistant.opencode.enable = true;
 
-      automation.just.enable = true;
+        automation.just.enable = true;
 
-      lang.nix = {
-        enable = true;
-        lsp = "nil";
-        formatter = "alejandra";
-        withStatix = true;
-        withDeadnix = true;
+        lang.nix = {
+          enable = true;
+          lsp = "nil";
+          formatter = "alejandra";
+          withStatix = true;
+          withDeadnix = true;
+        };
       };
     };
   };
