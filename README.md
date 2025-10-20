@@ -107,11 +107,55 @@ activation = {
 };
 ```
 
+**How it works:**
+When a controller connects, udev triggers the systemd service which takes over TTY1 via gamescope compositor. No autologin or manual startup required.
+
 **Finding controller names:**
 ```bash
 # Connect controller, then:
 udevadm monitor --subsystem-match=input --property | grep 'NAME='
 ```
+
+### Gamescope Compositor
+
+```nix
+gamescope = {
+  enable = true;                     # Default: true
+  args = ["-e" "-f"];                # Embedded mode, fullscreen
+};
+```
+
+**Common configurations:**
+
+```nix
+# FSR upscaling (1080p → 1440p)
+gamescope.args = [
+  "-e" "-f"
+  "-w" "1920" "-h" "1080"            # Game resolution
+  "-W" "2560" "-H" "1440"            # Output resolution
+  "-F" "fsr"                         # FSR upscaling
+  "--fsr-sharpness" "2"              # Sharpness level (0-20)
+];
+
+# VRR + framerate limit
+gamescope.args = [
+  "-e" "-f"
+  "--adaptive-sync"                  # Enable VRR
+  "-r" "144"                         # Framerate cap
+];
+
+# HDR (requires HDR display + kernel 6.8+)
+gamescope.args = [
+  "-e" "-f"
+  "--hdr-enabled"
+  "--hdr-itm-enable"
+];
+```
+
+**TTY1 behavior:**
+- Service takes over TTY1 when controller connects
+- Conflicts with `getty@tty1.service` (automatically handled)
+- Returns TTY1 to getty when service stops
 
 ### Remote Play
 
@@ -277,8 +321,11 @@ Steam runs as dedicated `games` user with:
 Udev rules trigger systemd service:
 ```bash
 # Controller connects → systemctl start steam-on-demand
+# Steam starts in gamescope compositor on TTY1
 # Controller disconnects → optional systemctl stop steam-on-demand
 ```
+
+Gamescope provides a Wayland compositor directly on TTY1, solving "Unable to open display" errors without requiring X11 or desktop environment.
 
 ### GPU Power Management
 

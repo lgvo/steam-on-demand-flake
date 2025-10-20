@@ -5,7 +5,7 @@
   ...
 }: let
   cfg = config.services.steam-on-demand;
-  inherit (lib) mkIf;
+  inherit (lib) mkIf concatStringsSep;
 
   steamFHS = config.programs.steam.package.override {
     extraPkgs = p:
@@ -21,15 +21,24 @@ in {
     systemd.services.steam-on-demand = {
       description = "Steam on-demand gaming service";
       wantedBy = [];
-      after = ["network.target" "sound.target"];
+      conflicts = ["getty@tty1.service"];
+      after = ["systemd-user-sessions.service" "sound.target"];
 
       serviceConfig = {
         Type = "simple";
         User = cfg.user;
         Group = "users";
-        ExecStart = "${steamFHS}/bin/steam -bigpicture";
+        ExecStart =
+          if cfg.gamescope.enable
+          then "${pkgs.gamescope}/bin/gamescope ${concatStringsSep " " cfg.gamescope.args} -- ${steamFHS}/bin/steam -bigpicture"
+          else "${steamFHS}/bin/steam -bigpicture";
         Restart = "on-failure";
         RestartSec = "5s";
+
+        TTYPath = "/dev/tty1";
+        StandardInput = "tty-fail";
+        StandardOutput = "journal";
+        StandardError = "journal";
 
         PrivateTmp = true;
         NoNewPrivileges = false;
@@ -47,8 +56,11 @@ in {
       '';
     };
 
-    environment.systemPackages = with pkgs; [
-      mangohud
-    ];
+    environment.systemPackages =
+      with pkgs;
+        [
+          mangohud
+        ]
+        ++ lib.optional cfg.gamescope.enable gamescope;
   };
 }

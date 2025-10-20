@@ -49,6 +49,20 @@ in {
         description = "Open required firewall ports for Remote Play";
       };
     };
+
+    gamescope = {
+      enable = mkOption {
+        type = types.bool;
+        default = true;
+        description = "Run Steam inside gamescope compositor on TTY1";
+      };
+
+      args = mkOption {
+        type = types.listOf types.str;
+        default = ["-e" "-f"];
+        description = "Arguments passed to gamescope compositor";
+      };
+    };
   };
 
   config = mkIf cfg.enable {
