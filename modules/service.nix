@@ -5,12 +5,11 @@
   ...
 }: let
   cfg = config.services.steam-on-demand;
-  inherit (lib) mkIf optionalString;
+  inherit (lib) mkIf;
 
-  steamFHS = pkgs.steam.override {
+  steamFHS = config.programs.steam.package.override {
     extraPkgs = p:
       with p; [
-        gamemode
         mangohud
       ];
   };
@@ -49,7 +48,6 @@ in {
     };
 
     environment.systemPackages = with pkgs; [
-      gamemode
       mangohud
     ];
   };
