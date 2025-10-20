@@ -5,35 +5,23 @@
   ...
 }: let
   cfg = config.services.steam-on-demand;
-  inherit (lib) mkOption mkIf types;
+  inherit (lib) mkOption mkIf types concatMapStringsSep;
+  homeDir = "/home/${cfg.user}";
 in {
-  options.services.steam-on-demand.optimize.protonGE = {
-    enable = mkOption {
-      type = types.bool;
-      default = true;
-      description = "Enable Proton-GE installation";
-    };
-
-    autoUpdate = mkOption {
-      type = types.bool;
-      default = true;
-      description = "Allow user to manage Proton-GE versions imperatively via Steam";
-    };
-
-    pinned = mkOption {
-      type = types.attrsOf types.package;
-      default = {};
-      description = "Per-game Proton-GE version pinning";
-      example = lib.literalExpression ''
-        {
-          "Counter-Strike 2" = pkgs.proton-ge-bin;
-          "Elden Ring" = pkgs.proton-ge-bin;
-        }
-      '';
-    };
+  options.services.steam-on-demand.extraProtonPackages = mkOption {
+    type = types.listOf types.package;
+    default = [];
+    description = "Additional Proton packages to install";
+    example = lib.literalExpression "[ nix-gaming.packages.x86_64-linux.proton-ge ]";
   };
 
-  config = mkIf (cfg.enable && cfg.optimize.protonGE.enable) {
-    environment.systemPackages = [pkgs.proton-ge-bin];
+  config = mkIf (cfg.enable && cfg.extraProtonPackages != []) {
+    systemd.services.steam-on-demand.preStart = ''
+      compatDir="${homeDir}/${cfg.directory}/compatibilitytools.d"
+      mkdir -p "$compatDir"
+      ${concatMapStringsSep "\n" (package: ''
+        ln -sf ${package} "$compatDir/$(basename ${package})"
+      '') cfg.extraProtonPackages}
+    '';
   };
 }

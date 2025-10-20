@@ -9,7 +9,7 @@ Declarative, isolated, and optimized Steam gaming on NixOS with controller-activ
 - **Generation-aware GPU optimization** - Automatic settings based on GPU vendor/generation
 - **Declarative optimization** - Kernel, scheduler, audio, graphics configurable via Nix
 - **Bleeding-edge support** - Optional integration with nix-gaming and Chaotic-Nyx
-- **Proton-GE management** - Hybrid declarative/imperative Proton version control
+- **Proton package management** - Declarative Proton version control via extraProtonPackages
 - **Per-game overrides** - Fine-grained configuration for specific titles
 - **Automatic power management** - GPU performance mode during gaming, restored on exit
 
@@ -221,21 +221,18 @@ optimize.bleedingEdge = {
 # HDR requirements: AMD GPU + kernel 6.8+ + HDR display
 ```
 
-#### Proton-GE
+#### Proton Packages
 
 ```nix
-optimize.protonGE = {
-  enable = true;                     # Default: true
-  autoUpdate = true;                 # User manages via Steam (imperative)
-  pinned = {};                       # Declarative per-game pins
-};
+extraProtonPackages = [];            # Default: []
 
-# Example pinned versions:
-optimize.protonGE.pinned = {
-  "Counter-Strike 2" = pkgs.proton-ge-9-20;
-  "Elden Ring" = pkgs.proton-ge-8-32;
-};
+# Example: Install Proton-GE from nix-gaming
+extraProtonPackages = [
+  nix-gaming.packages.x86_64-linux.proton-ge
+];
 ```
+
+Packages are automatically symlinked to `compatibilitytools.d` on service start.
 
 ### Per-Game Configuration
 
