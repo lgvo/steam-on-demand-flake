@@ -29,6 +29,7 @@ in {
         Type = "simple";
         User = cfg.user;
         Group = "users";
+        SupplementaryGroups = "video input render audio";
         ExecStartPre = "${pkgs.bash}/bin/bash -c 'set -euo pipefail; echo \"Starting Steam on-demand pre-start checks\"; if ! id \"${cfg.user}\" >/dev/null 2>&1; then echo \"Error: User ${cfg.user} does not exist\"; exit 1; fi'";
         ExecStart =
           if cfg.gamescope.enable
