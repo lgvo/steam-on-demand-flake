@@ -18,6 +18,13 @@
   steamDir = "${homeDir}/${cfg.directory}";
 in {
   config = mkIf cfg.enable {
+    security.wrappers.gamescope = {
+      owner = "root";
+      group = "root";
+      source = "${pkgs.gamescope}/bin/gamescope";
+      capabilities = "cap_sys_nice+pie";
+    };
+
     systemd.services.steam-on-demand = {
       description = "Steam on-demand gaming service";
       wantedBy = [];
@@ -34,7 +41,7 @@ in {
         ExecStartPre = "${pkgs.bash}/bin/bash -c 'set -euo pipefail; echo \"Starting Steam on-demand pre-start checks\"; if ! id \"${cfg.user}\" >/dev/null 2>&1; then echo \"Error: User ${cfg.user} does not exist\"; exit 1; fi'";
         ExecStart =
           if cfg.gamescope.enable
-          then "${pkgs.gamescope}/bin/gamescope ${concatStringsSep " " cfg.gamescope.args} -- ${steamFHS}/bin/steam -bigpicture"
+          then "/run/wrappers/bin/gamescope ${concatStringsSep " " cfg.gamescope.args} -- ${steamFHS}/bin/steam -bigpicture"
           else "${steamFHS}/bin/steam -bigpicture";
         Restart = "on-failure";
         RestartSec = "5s";
