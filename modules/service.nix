@@ -34,7 +34,7 @@ in {
         ExecStartPre = "${pkgs.bash}/bin/bash -c 'set -euo pipefail; echo \"Starting Steam on-demand pre-start checks\"; if ! id \"${cfg.user}\" >/dev/null 2>&1; then echo \"Error: User ${cfg.user} does not exist\"; exit 1; fi'";
         ExecStart =
           if cfg.gamescope.enable
-          then "${pkgs.gamescope}/bin/gamescope ${concatStringsSep " " cfg.gamescope.args} -- ${steamFHS}/bin/steam -bigpicture"
+          then "${pkgs.gamescope-session}/bin/gamescope-session ${concatStringsSep " " cfg.gamescope.args} -- ${steamFHS}/bin/steam -bigpicture"
           else "${steamFHS}/bin/steam -bigpicture";
         Restart = "on-failure";
         RestartSec = "5s";
@@ -74,6 +74,6 @@ in {
         [
           mangohud
         ]
-        ++ lib.optional cfg.gamescope.enable gamescope;
+        ++ lib.optional cfg.gamescope.enable gamescope-session;
   };
 }
