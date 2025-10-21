@@ -59,7 +59,7 @@ in {
 
       args = mkOption {
         type = types.listOf types.str;
-        default = ["-e" "-f"];
+        default = ["-e" "-f" "-W" "1920" "-H" "1080"];
         description = "Arguments passed to gamescope compositor";
       };
     };
