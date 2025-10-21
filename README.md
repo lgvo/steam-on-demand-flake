@@ -246,12 +246,23 @@ optimize.gpu = {
 | RTX 40 | Open | Auto RTD3, threaded optimization |
 | RTX 50 | Open (required) | Driver 570+ required |
 
-#### System
+#### CPU Governor
 
 ```nix
-optimize.cpuGovernor = true;         # Default: true
-# Effect: Auto CPU governor switching (performance on start, powersave on stop)
+# Recommended: Use schedutil for automatic performance scaling
+powerManagement.cpuFreqGovernor = "schedutil";
+# Effect: Auto-scales CPU frequency based on scheduler utilization
+# No manual switching needed - automatically boosts during gaming
 ```
+
+**Governor options:**
+- `schedutil` - Recommended: intelligent auto-scaling based on CPU load
+- `ondemand` - Legacy auto-scaling, scales up quickly on demand
+- `performance` - Always max frequency (high power usage)
+- `powersave` - Always min frequency (poor gaming performance)
+
+Find current governor: `cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor`
+
 
 #### Bleeding-Edge Features
 
