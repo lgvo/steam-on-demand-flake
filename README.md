@@ -14,8 +14,6 @@ Declarative, isolated, and optimized Steam gaming on NixOS with controller-activ
 
 ## Quick Start
 
-### Minimal Setup (nixpkgs only)
-
 ```nix
 {
   inputs.steam-on-demand.url = "github:yourname/steam-on-demand";
@@ -27,51 +25,9 @@ Declarative, isolated, and optimized Steam gaming on NixOS with controller-activ
         {
           services.steam-on-demand = {
             enable = true;
-            optimize.gpu = {
+            gpu = {
               vendor = "amd";
               generation = "rdna3";
-            };
-          };
-        }
-      ];
-    };
-  };
-}
-```
-
-### With Optimizations
-
-```nix
-{
-  inputs = {
-    steam-on-demand.url = "github:yourname/steam-on-demand";
-    nix-gaming.url = "github:fufexan/nix-gaming";
-    chaotic-nyx.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
-  };
-  
-  outputs = { nixpkgs, steam-on-demand, ... }: {
-    nixosConfigurations.gaming = nixpkgs.lib.nixosSystem {
-      modules = [
-        steam-on-demand.nixosModules.default
-        {
-          services.steam-on-demand = {
-            enable = true;
-            
-            optimize = {
-              lowLatencyAudio = true;
-              kernel = "cachyos";
-              scheduler = "scx_rusty";
-              
-              gpu = {
-                vendor = "amd";
-                generation = "rdna3";
-              };
-              
-              bleedingEdge = {
-                enable = true;
-                graphics = true;
-                hdr = true;
-              };
             };
           };
         }
@@ -170,46 +126,10 @@ remotePlay = {
 };
 ```
 
-### Optimization Options
-
-#### Audio
+### GPU Configuration
 
 ```nix
-optimize.lowLatencyAudio = false;    # Default: false
-# Requires: nix-gaming input
-# Effect: 1.33ms audio latency (quantum=64, rate=48000)
-# Use case: Rhythm games, competitive FPS
-```
-
-#### Kernel
-
-```nix
-optimize.kernel = "standard";        # Default: "standard"
-# Options:
-#   "standard" - nixpkgs default
-#   "zen"      - 1000Hz timer, TkG scheduler, gaming patches
-#   "xanmod"   - PREEMPT_RT, BBRv3 TCP
-#   "cachyos"  - BORE scheduler, sched-ext, LTO (requires chaotic-nyx)
-```
-
-#### Scheduler
-
-```nix
-optimize.scheduler = null;           # Default: null
-# Requires: chaotic-nyx + kernel 6.12+
-# Options:
-#   null           - Kernel default (EEVDF on 6.11+)
-#   "scx_rusty"    - Rust-based, balanced
-#   "scx_rustland" - Alternative Rust scheduler
-#   "scx_lavd"     - Low-latency desktop/gaming
-```
-
-
-
-#### GPU Configuration
-
-```nix
-optimize.gpu = {
+gpu = {
   vendor = "amd";                    # "amd" | "nvidia" | "intel"
   generation = "rdna3";              # See generation table below
 };
@@ -238,37 +158,7 @@ optimize.gpu = {
 | RTX 40 | Open | Auto RTD3, threaded optimization |
 | RTX 50 | Open (required) | Driver 570+ required |
 
-#### CPU Governor
-
-```nix
-# Recommended: Use schedutil for automatic performance scaling
-powerManagement.cpuFreqGovernor = "schedutil";
-# Effect: Auto-scales CPU frequency based on scheduler utilization
-# No manual switching needed - automatically boosts during gaming
-```
-
-**Governor options:**
-- `schedutil` - Recommended: intelligent auto-scaling based on CPU load
-- `ondemand` - Legacy auto-scaling, scales up quickly on demand
-- `performance` - Always max frequency (high power usage)
-- `powersave` - Always min frequency (poor gaming performance)
-
-Find current governor: `cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor`
-
-
-#### Bleeding-Edge Features
-
-```nix
-optimize.bleedingEdge = {
-  enable = false;                    # Default: false
-  graphics = true;                   # mesa_git, gamescope_git daily builds
-  hdr = false;                       # HDR support (requires graphics = true)
-};
-# Requires: chaotic-nyx input
-# HDR requirements: AMD GPU + kernel 6.8+ + HDR display
-```
-
-#### Compatibility Tools
+### Compatibility Tools
 
 ```nix
 extraCompatPackages = [];            # Default: []
@@ -280,17 +170,6 @@ extraCompatPackages = with pkgs; [
 ```
 
 Packages are automatically managed by `programs.steam.extraCompatPackages`.
-
-## Dependency Matrix
-
-| Feature | Required Input | Cache Available |
-|---------|---------------|-----------------|
-| Basic Steam | nixpkgs | ✓ |
-| `kernel = "zen/xanmod"` | nixpkgs | ✓ |
-| `lowLatencyAudio` | nix-gaming | ✓ |
-| `kernel = "cachyos"` | chaotic-nyx | ✓ |
-| `scheduler = "scx_*"` | chaotic-nyx | ✓ |
-| `bleedingEdge.*` | chaotic-nyx | ✓ |
 
 ## How It Works
 
@@ -334,11 +213,9 @@ GPU vendor + generation determines:
 - Core isolation with display manager
 - Controller activation
 - SDDM + Wayland + gamescope session
-- Kernel/scheduler selection
+- GPU-based configuration (AMD/Nvidia)
 
 **Experimental:**
-- HDR support (requires kernel 6.8+, HDR display)
-- sched-ext schedulers (kernel 6.12+)
 - RDNA4 support (Mesa 25.1+ maturing through 2025)
 
 ## License
@@ -348,7 +225,5 @@ MIT
 ## Credits
 
 Built on excellent work from:
-- [nixpkgs](https://github.com/NixOS/nixpkgs) - FHS Steam support
-- [nix-gaming](https://github.com/fufexan/nix-gaming) - Low-latency audio, Wine optimization
-- [Chaotic-Nyx](https://github.com/chaotic-cx/nyx) - Bleeding-edge packages
+- [nixpkgs](https://github.com/NixOS/nixpkgs) - FHS Steam support, gamescope session
 - [Jovian-NixOS](https://github.com/Jovian-Experiments/Jovian-NixOS) - Steam Deck inspiration

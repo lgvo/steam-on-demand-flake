@@ -5,7 +5,7 @@
   ...
 }: let
   cfg = config.services.steam-on-demand;
-  gpuCfg = cfg.optimize.gpu;
+  gpuCfg = cfg.gpu;
   inherit (lib) mkOption mkIf types;
 
   isAMD = gpuCfg.vendor == "amd";
@@ -24,7 +24,7 @@
     };
   };
 in {
-  options.services.steam-on-demand.optimize.gpu = {
+  options.services.steam-on-demand.gpu = {
     vendor = mkOption {
       type = types.nullOr (types.enum ["amd" "nvidia" "intel"]);
       default = null;
