@@ -1,16 +1,15 @@
 # steam-on-demand
 
-Declarative, isolated, and optimized Steam gaming on NixOS with controller-activated display manager and gamescope session.
+Controller-activated Steam gaming on NixOS with gamescope session and GPU-based configuration.
 
 ## Features
 
-- **Isolated environment** - Dedicated user isolation with autologin
 - **Controller activation** - Auto-start Steam session via udev when controllers connect
 - **Display manager integration** - SDDM with Wayland and gamescope session
-- **Generation-aware GPU optimization** - Automatic settings based on GPU vendor/generation
-- **Declarative optimization** - Kernel, scheduler, audio, graphics configurable via Nix
-- **Bleeding-edge support** - Optional integration with nix-gaming and Chaotic-Nyx
+- **Dedicated user** - Separate user account with autologin for Steam
+- **GPU configuration** - Generation-aware settings for AMD and Nvidia GPUs
 - **Compatibility tools** - Declarative Proton version control via extraCompatPackages
+- **Boot options** - Choose between on-demand activation or auto-start at boot
 
 ## Quick Start
 
@@ -173,10 +172,10 @@ Packages are automatically managed by `programs.steam.extraCompatPackages`.
 
 ## How It Works
 
-### Isolation
+### Dedicated User
 
 Steam runs as dedicated `gamer` user with:
-- Isolated home directory (`/home/gamer/`)
+- Separate home directory (`/home/gamer/`)
 - Automatic login via display manager
 - FHS environment via `programs.steam`
 
@@ -199,7 +198,7 @@ Udev rules trigger display manager:
 - **Gamescope**: Wayland compositor running Steam
 - **Boot Target**: `multi-user.target` by default (on-demand), `graphical.target` if `bootToBigPicture` enabled
 
-### Generation-Aware Optimization
+### GPU Configuration
 
 GPU vendor + generation determines:
 - Driver selection (Nvidia open vs proprietary)
@@ -210,10 +209,10 @@ GPU vendor + generation determines:
 ## Project Status
 
 **Stable:**
-- Core isolation with display manager
-- Controller activation
-- SDDM + Wayland + gamescope session
+- Controller activation via udev
+- Display manager integration (SDDM + Wayland + gamescope)
 - GPU-based configuration (AMD/Nvidia)
+- Boot target control
 
 **Experimental:**
 - RDNA4 support (Mesa 25.1+ maturing through 2025)
