@@ -89,8 +89,13 @@ Declarative, isolated, and optimized Steam gaming on NixOS with controller-activ
 services.steam-on-demand = {
   enable = false;                    # Enable module
   user = "gamer";                    # Dedicated isolation user
+  bootToBigPicture = false;          # Boot directly to Steam Big Picture (default: false)
 };
 ```
+
+**Boot behavior:**
+- `bootToBigPicture = false` (default): System boots to `multi-user.target`, Steam starts only when controller connects
+- `bootToBigPicture = true`: System boots to `graphical.target`, Steam Big Picture starts automatically at boot
 
 ### Controller Activation
 
@@ -106,7 +111,7 @@ activation = {
 ```
 
 **How it works:**
-When a controller connects, udev triggers the display manager service which starts a gamescope session with the configured user automatically logged in.
+When a controller connects, udev triggers the display manager service which starts a gamescope session with the configured user automatically logged in. If `bootToBigPicture` is enabled, the display manager starts at boot instead of waiting for controller activation.
 
 **Finding controller names:**
 ```bash
@@ -313,6 +318,7 @@ Udev rules trigger display manager:
 - **Autologin**: Gamer user logs in automatically
 - **Default Session**: "steam" session via `programs.steam.gamescopeSession`
 - **Gamescope**: Wayland compositor running Steam
+- **Boot Target**: `multi-user.target` by default (on-demand), `graphical.target` if `bootToBigPicture` enabled
 
 ### Generation-Aware Optimization
 

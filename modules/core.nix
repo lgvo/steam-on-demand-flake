@@ -4,7 +4,7 @@
   ...
 }: let
   cfg = config.services.steam-on-demand;
-  inherit (lib) mkEnableOption mkOption mkIf types;
+  inherit (lib) mkEnableOption mkOption mkIf mkForce types;
 in {
   options.services.steam-on-demand = {
     enable = mkEnableOption "Steam on-demand service with controller activation";
@@ -13,6 +13,20 @@ in {
       type = types.str;
       default = "gamer";
       description = "User account for isolated Steam environment";
+    };
+
+    bootToBigPicture = mkOption {
+      type = types.bool;
+      default = false;
+      description = ''
+        Automatically start Steam Big Picture mode at boot.
+
+        When enabled, the system boots to graphical.target and automatically
+        logs in the gaming user to the Steam session.
+
+        When disabled (default), the system boots to multi-user.target and
+        only starts the Steam session when a controller is connected.
+      '';
     };
 
     activation = {
@@ -89,5 +103,11 @@ in {
       inherit (cfg) extraCompatPackages;
       remotePlay.openFirewall = cfg.remotePlay.enable && cfg.remotePlay.openFirewall;
     };
+
+    systemd.defaultUnit = mkForce (
+      if cfg.bootToBigPicture
+      then "graphical.target"
+      else "multi-user.target"
+    );
   };
 }
