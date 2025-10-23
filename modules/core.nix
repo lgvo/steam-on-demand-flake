@@ -43,7 +43,18 @@ in {
       stopOnDisconnect = mkOption {
         type = types.bool;
         default = false;
-        description = "Stop Steam service when controller disconnects";
+        description = ''
+          Stop Steam service when controller disconnects.
+
+          WARNING: This may stop the service in undesired situations such as:
+          - Controller battery dies
+          - Secondary/guest controller disconnects
+          - Temporary wireless interference
+          - Controller goes into power-saving mode
+
+          Only enable if you want the display manager to stop whenever ANY
+          configured controller disconnects.
+        '';
       };
     };
 
