@@ -77,12 +77,30 @@ udevadm monitor --subsystem-match=input --property | grep 'NAME='
 ### Security
 
 ```nix
-security = {
-  preventPowerManagement = true;     # Prevent gaming user from system power actions (default: true)
+security.shutdownInterception = {
+  enable = true;                         # Enable shutdown interception (default: true)
+  onReboot = "restart-display-manager";  # Default: restart display manager
+  onPowerOff = "stop-display-manager";   # Default: stop display manager
+  onSuspend = "block";                   # Default: block with polkit
+  onHibernate = "block";                 # Default: block with polkit
 };
 ```
 
-When enabled (default), polkit rules prevent the gaming user from powering off, rebooting, suspending, or hibernating the system from within the Steam session. This prevents accidental shutdowns while maintaining administrative control.
+**Shutdown interception** monitors power management attempts from the gaming session and handles them gracefully:
+
+- **onReboot** options: `"restart-display-manager"` (default), `"allow"`, `"block"`
+- **onPowerOff** options: `"stop-display-manager"` (default), `"allow"`, `"block"`
+- **onSuspend/onHibernate** options: `"block"` (default), `"allow"`
+
+**Default behavior:**
+- Shutdown from Steam → stops display manager (system stays running)
+- Reboot from Steam → restarts display manager (returns to gaming session)
+- Suspend/Hibernate → blocked via polkit
+
+**How it works:**
+- D-Bus monitor intercepts `PowerOff`/`Reboot` signals and runs `systemctl stop/restart display-manager`
+- Polkit rules block actions set to `"block"`
+- Actions set to `"allow"` pass through normally
 
 ### Gamescope Configuration
 
