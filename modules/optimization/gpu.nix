@@ -6,7 +6,7 @@
 }: let
   cfg = config.services.steam-on-demand;
   gpuCfg = cfg.optimize.gpu;
-  inherit (lib) mkOption mkIf types optionalAttrs;
+  inherit (lib) mkOption mkIf types;
 
   isAMD = gpuCfg.vendor == "amd";
   isNvidia = gpuCfg.vendor == "nvidia";
@@ -22,12 +22,6 @@
     rdna4 = {
       AMD_VULKAN_ICD = "RADV";
     };
-  };
-
-  nvidiaEnv = generation: {
-    __GL_THREADED_OPTIMIZATION = "1";
-    __GL_SHADER_DISK_CACHE = "1";
-    __GL_SHADER_DISK_CACHE_SKIP_CLEANUP = "1";
   };
 in {
   options.services.steam-on-demand.optimize.gpu = {
@@ -53,9 +47,7 @@ in {
       powerManagement.enable = true;
     };
 
-    systemd.services.steam-on-demand.serviceConfig.Environment = mkIf isAMD (
-      lib.mapAttrsToList (k: v: "${k}=${v}") (amdEnv.${gpuCfg.generation} or {})
-    );
+    environment.sessionVariables = mkIf isAMD (amdEnv.${gpuCfg.generation} or {});
 
     assertions = [
       {

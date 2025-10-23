@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }: let
   cfg = config.services.steam-on-demand;
@@ -13,7 +12,7 @@
       then "add|remove"
       else "add";
   in ''
-    ACTION=="${action}", SUBSYSTEM=="input", ATTRS{name}=="${controller}", TAG+="systemd", ENV{SYSTEMD_WANTS}="steam-on-demand.service"
+    ACTION=="${action}", SUBSYSTEM=="input", ATTRS{name}=="${controller}", TAG+="systemd", ENV{SYSTEMD_WANTS}="display-manager.service"
   '';
 in {
   config = mkIf cfg.enable {

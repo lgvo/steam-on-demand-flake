@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }: let
   cfg = config.services.steam-on-demand;
@@ -14,12 +13,6 @@ in {
       type = types.str;
       default = "gamer";
       description = "User account for isolated Steam environment";
-    };
-
-    directory = mkOption {
-      type = types.str;
-      default = ".local/share/steam-games";
-      description = "Steam installation directory relative to user home";
     };
 
     activation = {
@@ -50,18 +43,23 @@ in {
       };
     };
 
-    gamescope = {
-      enable = mkOption {
-        type = types.bool;
-        default = true;
-        description = "Run Steam inside gamescope compositor on TTY1";
-      };
+    gamescope.args = mkOption {
+      type = types.listOf types.str;
+      default = [];
+      description = "Arguments passed to gamescope compositor";
+    };
 
-      args = mkOption {
-        type = types.listOf types.str;
-        default = ["-e" "-f" "-W" "1920" "-H" "1080"];
-        description = "Arguments passed to gamescope compositor";
-      };
+    steam.args = mkOption {
+      type = types.listOf types.str;
+      default = [];
+      description = "Arguments passed to Steam";
+    };
+
+    extraCompatPackages = mkOption {
+      type = types.listOf types.package;
+      default = [];
+      description = "Additional compatibility tool packages (e.g., Proton versions)";
+      example = lib.literalExpression "with pkgs; [ proton-ge-bin ]";
     };
   };
 
@@ -73,8 +71,22 @@ in {
       createHome = true;
     };
 
+    services.displayManager = {
+      sddm.enable = true;
+      sddm.wayland.enable = true;
+      autoLogin.enable = true;
+      autoLogin.user = cfg.user;
+      defaultSession = "steam";
+    };
+
     programs.steam = {
       enable = true;
+      gamescopeSession = {
+        enable = true;
+        inherit (cfg.gamescope) args;
+        steamArgs = cfg.steam.args;
+      };
+      inherit (cfg) extraCompatPackages;
       remotePlay.openFirewall = cfg.remotePlay.enable && cfg.remotePlay.openFirewall;
     };
   };

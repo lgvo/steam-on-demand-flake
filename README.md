@@ -1,17 +1,17 @@
 # steam-on-demand
 
-Declarative, isolated, and optimized Steam gaming on NixOS with controller-activated systemd service.
+Declarative, isolated, and optimized Steam gaming on NixOS with controller-activated display manager and gamescope session.
 
 ## Features
 
-- **Isolated environment** - Dedicated user isolation with configurable home directory
-- **Controller activation** - Auto-start/stop Steam via udev when controllers connect
+- **Isolated environment** - Dedicated user isolation with autologin
+- **Controller activation** - Auto-start Steam session via udev when controllers connect
+- **Display manager integration** - SDDM with Wayland and gamescope session
 - **Generation-aware GPU optimization** - Automatic settings based on GPU vendor/generation
 - **Declarative optimization** - Kernel, scheduler, audio, graphics configurable via Nix
 - **Bleeding-edge support** - Optional integration with nix-gaming and Chaotic-Nyx
-- **Proton package management** - Declarative Proton version control via extraProtonPackages
+- **Compatibility tools** - Declarative Proton version control via extraCompatPackages
 - **Per-game overrides** - Fine-grained configuration for specific titles
-- **Automatic power management** - GPU performance mode during gaming, restored on exit
 
 ## Quick Start
 
@@ -90,7 +90,6 @@ Declarative, isolated, and optimized Steam gaming on NixOS with controller-activ
 services.steam-on-demand = {
   enable = false;                    # Enable module
   user = "gamer";                    # Dedicated isolation user
-  directory = ".local/share/steam-games";  # Relative to /home/gamer/
 };
 ```
 
@@ -108,7 +107,7 @@ activation = {
 ```
 
 **How it works:**
-When a controller connects, udev triggers the systemd service which takes over TTY1 via gamescope compositor. No autologin or manual startup required.
+When a controller connects, udev triggers the display manager service which starts a gamescope session with the configured user automatically logged in.
 
 **Finding controller names:**
 ```bash
@@ -116,13 +115,11 @@ When a controller connects, udev triggers the systemd service which takes over T
 udevadm monitor --subsystem-match=input --property | grep 'NAME='
 ```
 
-### Gamescope Compositor
+### Gamescope Configuration
 
 ```nix
-gamescope = {
-  enable = true;                     # Default: true
-  args = ["-e" "-f"];                # Embedded mode, fullscreen
-};
+gamescope.args = ["-e" "-f"];        # Default: []
+steam.args = [];                     # Default: []
 ```
 
 **Common configurations:**
@@ -150,12 +147,15 @@ gamescope.args = [
   "--hdr-enabled"
   "--hdr-itm-enable"
 ];
+
+# Steam arguments (e.g., force Big Picture)
+steam.args = ["-bigpicture"];
 ```
 
-**TTY1 behavior:**
-- Service takes over TTY1 when controller connects
-- Conflicts with `getty@tty1.service` (automatically handled)
-- Returns TTY1 to getty when service stops
+**Display manager:**
+- Uses SDDM with Wayland
+- Autologin enabled for gaming user
+- Gamescope session runs as default session
 
 ### Remote Play
 
@@ -200,19 +200,7 @@ optimize.scheduler = null;           # Default: null
 #   "scx_lavd"     - Low-latency desktop/gaming
 ```
 
-#### CPU Core Pinning
 
-```nix
-optimize.cpuCores = null;            # Default: null
-# Examples:
-#   null                 - No pinning
-#   [ 0 1 2 3 4 5 6 7 ]  - Pin to specific cores
-#
-# Intel 14700K P-cores (0-15): [ 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 ]
-# AMD 7950X3D CCD0 (0-7):      [ 0 1 2 3 4 5 6 7 ]
-#
-# Find your topology: lscpu -e
-```
 
 #### GPU Configuration
 
@@ -276,18 +264,18 @@ optimize.bleedingEdge = {
 # HDR requirements: AMD GPU + kernel 6.8+ + HDR display
 ```
 
-#### Proton Packages
+#### Compatibility Tools
 
 ```nix
-extraProtonPackages = [];            # Default: []
+extraCompatPackages = [];            # Default: []
 
-# Example: Install Proton-GE from nix-gaming
-extraProtonPackages = [
-  nix-gaming.packages.x86_64-linux.proton-ge
+# Example: Install Proton-GE from nixpkgs
+extraCompatPackages = with pkgs; [
+  proton-ge-bin
 ];
 ```
 
-Packages are automatically symlinked to `compatibilitytools.d` on service start.
+Packages are automatically managed by `programs.steam.extraCompatPackages`.
 
 ### Per-Game Configuration
 
@@ -323,45 +311,42 @@ games."Game Name" = {
 ### Isolation
 
 Steam runs as dedicated `gamer` user with:
-- Isolated home directory (`/home/gamer/.local/share/steam-games/`)
-- Systemd service with `User=gamer`, `PrivateTmp=true`
-- FHS environment via `buildFHSUserEnv`
+- Isolated home directory (`/home/gamer/`)
+- Automatic login via display manager
+- FHS environment via `programs.steam`
 
 ### Controller Activation
 
-Udev rules trigger systemd service:
+Udev rules trigger display manager:
 ```bash
-# Controller connects → systemctl start steam-on-demand
-# Steam starts in gamescope compositor on TTY1
-# Controller disconnects → optional systemctl stop steam-on-demand
+# Controller connects → systemctl start display-manager
+# SDDM starts with Wayland
+# Gamer user automatically logs in
+# Steam gamescope session starts as default session
+# Controller disconnects → optional session termination
 ```
 
-Gamescope provides a Wayland compositor directly on TTY1, solving "Unable to open display" errors without requiring X11 or desktop environment.
+### Display Manager
 
-### GPU Power Management
-
-```bash
-# On service start:
-ExecStartPre: Save current GPU state → Set performance mode
-
-# On service stop:
-ExecStopPost: Restore previous GPU state
-```
+- **SDDM**: Display manager with Wayland support
+- **Autologin**: Gamer user logs in automatically
+- **Default Session**: "steam" session via `programs.steam.gamescopeSession`
+- **Gamescope**: Wayland compositor running Steam
 
 ### Generation-Aware Optimization
 
 GPU vendor + generation determines:
 - Driver selection (Nvidia open vs proprietary)
-- Environment variables (`AMD_VULKAN_ICD`, `RADV_DEBUG`)
+- Session environment variables (`AMD_VULKAN_ICD`, `RADV_DEBUG`)
 - Required package versions (Mesa 25.1+ for RDNA4)
 - Assertions (RTX 50 requires open driver)
 
 ## Project Status
 
 **Stable:**
-- Core isolation and systemd service
+- Core isolation with display manager
 - Controller activation
-- GPU power management
+- SDDM + Wayland + gamescope session
 - Kernel/scheduler selection
 - Per-game configuration
 
