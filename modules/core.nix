@@ -12,7 +12,7 @@ in {
 
     user = mkOption {
       type = types.str;
-      default = "games";
+      default = "gamer";
       description = "User account for isolated Steam environment";
     };
 

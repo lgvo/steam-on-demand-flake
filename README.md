@@ -89,8 +89,8 @@ Declarative, isolated, and optimized Steam gaming on NixOS with controller-activ
 ```nix
 services.steam-on-demand = {
   enable = false;                    # Enable module
-  user = "games";                    # Dedicated isolation user
-  directory = ".local/share/steam-games";  # Relative to /home/games/
+  user = "gamer";                    # Dedicated isolation user
+  directory = ".local/share/steam-games";  # Relative to /home/gamer/
 };
 ```
 
@@ -322,9 +322,9 @@ games."Game Name" = {
 
 ### Isolation
 
-Steam runs as dedicated `games` user with:
-- Isolated home directory (`/home/games/.local/share/steam-games/`)
-- Systemd service with `User=games`, `PrivateTmp=true`
+Steam runs as dedicated `gamer` user with:
+- Isolated home directory (`/home/gamer/.local/share/steam-games/`)
+- Systemd service with `User=gamer`, `PrivateTmp=true`
 - FHS environment via `buildFHSUserEnv`
 
 ### Controller Activation
