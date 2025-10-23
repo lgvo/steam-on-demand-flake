@@ -10,18 +10,30 @@
 
   isAMD = gpuCfg.vendor == "amd";
   isNvidia = gpuCfg.vendor == "nvidia";
+  isIntel = gpuCfg.vendor == "intel";
 
   amdEnv = {
     rdna2 = {
       AMD_VULKAN_ICD = "RADV";
+      MESA_VK_DEVICE_SELECT = "1002:*";
     };
     rdna3 = {
       AMD_VULKAN_ICD = "RADV";
       RADV_DEBUG = "nonggc";
+      MESA_VK_DEVICE_SELECT = "1002:*";
     };
     rdna4 = {
       AMD_VULKAN_ICD = "RADV";
+      MESA_VK_DEVICE_SELECT = "1002:*";
     };
+  };
+
+  nvidiaEnv = {
+    MESA_VK_DEVICE_SELECT = "10de:*";
+  };
+
+  intelEnv = {
+    MESA_VK_DEVICE_SELECT = "8086:*";
   };
 in {
   options.services.steam-on-demand.gpu = {
@@ -47,7 +59,14 @@ in {
       powerManagement.enable = true;
     };
 
-    environment.sessionVariables = mkIf isAMD (amdEnv.${gpuCfg.generation} or {});
+    environment.sessionVariables =
+      if isAMD
+      then (amdEnv.${gpuCfg.generation} or {})
+      else if isNvidia
+      then nvidiaEnv
+      else if isIntel
+      then intelEnv
+      else {};
 
     assertions = [
       {
