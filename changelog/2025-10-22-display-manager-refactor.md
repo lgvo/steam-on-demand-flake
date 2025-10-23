@@ -49,10 +49,11 @@ Complete architectural refactor replacing the custom systemd service on TTY1 wit
 - `modules/service.nix` - Custom systemd service no longer needed
 - `modules/optimization/system.nix` - CPU affinity feature removed
 - `modules/optimization/proton.nix` - Functionality moved to `core.nix` via `programs.steam.extraCompatPackages`
+- `modules/games.nix` - Per-game configuration removed for simplicity
 
 **`modules/default.nix`**:
-- Removed imports: `./service.nix`, `./optimization/system.nix`, `./optimization/proton.nix`
-- Kept: `./core.nix`, `./activation.nix`, `./games.nix`, optimization modules
+- Removed imports: `./service.nix`, `./optimization/system.nix`, `./optimization/proton.nix`, `./games.nix`
+- Kept: `./core.nix`, `./activation.nix`, optimization modules
 
 ### Option Changes
 
@@ -60,6 +61,7 @@ Complete architectural refactor replacing the custom systemd service on TTY1 wit
 - `services.steam-on-demand.directory` - Steam manages directories automatically
 - `services.steam-on-demand.optimize.cpuCores` - CPU affinity feature removed
 - `services.steam-on-demand.gamescope.enable` - Always enabled via gamescopeSession
+- `services.steam-on-demand.games` - Per-game configuration removed
 
 **Renamed Options**:
 - `extraProtonPackages` → `extraCompatPackages` (matches `programs.steam.extraCompatPackages`)
@@ -108,6 +110,17 @@ services.steam-on-demand = {
 ```nix
 services.steam-on-demand = {
   gamescope.enable = true;
+};
+```
+
+**Per-Game Configuration** (feature removed):
+```nix
+services.steam-on-demand = {
+  games."Game Name" = {
+    proton.version = pkgs.proton-ge-bin;
+    environment = { ... };
+    gamescope = { ... };
+  };
 };
 ```
 
@@ -162,9 +175,10 @@ services.steam-on-demand = {
 - Proper Wayland session management
 
 **Simplicity**:
-- Fewer custom modules (deleted 3 modules)
+- Fewer custom modules (deleted 4 modules)
 - GPU environment variables apply naturally at session level
 - Proton packages managed by `programs.steam` directly
+- Removed per-game configuration complexity
 
 **Standard Approach**:
 - Aligns with how other NixOS gaming setups work
@@ -176,12 +190,13 @@ services.steam-on-demand = {
 **Removed Features**:
 - CPU core pinning (`optimize.cpuCores`) - Removed to reduce complexity. Can be re-added if needed via systemd user slices.
 - Custom directory configuration - Steam manages its own directory structure via `programs.steam`
+- Per-game configuration (`games` option) - Removed to simplify module. Users can configure games directly in Steam or via launch options.
 
 **Added Complexity**:
 - Display manager dependency (SDDM)
 - Autologin configuration
 
-**Overall**: Significant reduction in custom code (~200 lines deleted) for more maintainable, standard approach.
+**Overall**: Significant reduction in custom code (~270 lines deleted) for more maintainable, standard approach.
 
 ## Validation
 
@@ -202,6 +217,7 @@ services.steam-on-demand = {
 - `modules/service.nix`
 - `modules/optimization/system.nix`
 - `modules/optimization/proton.nix`
+- `modules/games.nix`
 
 ### Created
 - `changelog/2025-10-22-display-manager-refactor.md`

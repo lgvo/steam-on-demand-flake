@@ -11,7 +11,6 @@ Declarative, isolated, and optimized Steam gaming on NixOS with controller-activ
 - **Declarative optimization** - Kernel, scheduler, audio, graphics configurable via Nix
 - **Bleeding-edge support** - Optional integration with nix-gaming and Chaotic-Nyx
 - **Compatibility tools** - Declarative Proton version control via extraCompatPackages
-- **Per-game overrides** - Fine-grained configuration for specific titles
 
 ## Quick Start
 
@@ -277,24 +276,6 @@ extraCompatPackages = with pkgs; [
 
 Packages are automatically managed by `programs.steam.extraCompatPackages`.
 
-### Per-Game Configuration
-
-```nix
-games."Game Name" = {
-  proton.version = pkgs.proton-ge-9-20;
-  
-  environment = {
-    RADV_PERFTEST = "nggc";
-    DXVK_ASYNC = "1";
-  };
-  
-  gamescope = {
-    enable = true;
-    args = "-w 1920 -h 1080 -W 2560 -H 1440 -F fsr --fsr-sharpness 2";
-  };
-};
-```
-
 ## Dependency Matrix
 
 | Feature | Required Input | Cache Available |
@@ -348,7 +329,6 @@ GPU vendor + generation determines:
 - Controller activation
 - SDDM + Wayland + gamescope session
 - Kernel/scheduler selection
-- Per-game configuration
 
 **Experimental:**
 - HDR support (requires kernel 6.8+, HDR display)
