@@ -74,6 +74,16 @@ When a controller connects, udev triggers the display manager service which star
 udevadm monitor --subsystem-match=input --property | grep 'NAME='
 ```
 
+### Security
+
+```nix
+security = {
+  preventPowerManagement = true;     # Prevent gaming user from system power actions (default: true)
+};
+```
+
+When enabled (default), polkit rules prevent the gaming user from powering off, rebooting, suspending, or hibernating the system from within the Steam session. This prevents accidental shutdowns while maintaining administrative control.
+
 ### Gamescope Configuration
 
 ```nix
